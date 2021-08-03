@@ -126,16 +126,46 @@ class InjuriesIntentHandler(AbstractRequestHandler):
         slots = handler_input.request_envelope.request.intent.slots
         
         number = slots["Number"].value
-        noun = slots["Noun"].value
+        noun = slots["Noun"].value # make function that chops end word(s) off of str
         pastTense = slots["PastTense"].value
         presentProg = slots["PresentProg"].value
         
         # caller is aware of injuries
         if number != None and noun != None:
             if number == "1":
-                speak_output = "{number} {noun} was involved? Okay I'll keep that in mind.".format(number=number, noun=noun)
+                speak_output = ("{number} {noun} was involved? Okay I'll keep that in mind.").format(number=number, noun=noun[1])
             else:
-                speak_output = "{number} {noun} were involved? Okay I'll keep that in mind.".format(number=number, noun=noun)
+                speak_output = ("{number} {noun} were involved? Okay I'll keep that in mind.").format(number=number, noun=noun)
+        
+        # caller is unsure of injuries
+        else:
+            speak_output = "Okay, we can move on from that then."
+        
+        return (
+            handler_input.response_builder
+                .speak(speak_output)
+                .ask(speak_output)
+                .response
+        )
+
+
+
+class NameIntentHandler(AbstractRequestHandler):
+    #Handler for Help Intent.
+    def can_handle(self, handler_input):
+        # type: (HandlerInput) -> bool
+        return is_intent_name("NameIntent")(handler_input)
+
+    def handle(self, handler_input):
+        # type: (HandlerInput) -> Response
+        session_attributes = handler_input.attributes_manager.session_attributes
+        slots = handler_input.request_envelope.request.intent.slots
+        
+        name = slots["Name"].value
+        
+        # name recorded
+        if name != None:
+            speak_output = "Okay, {name}. I'm sending in your report as we speak. Is there anything else you would like emergency services to know before they arrive?".format(name=name)
         
         # caller is unsure of injuries
         else:
@@ -147,6 +177,7 @@ class InjuriesIntentHandler(AbstractRequestHandler):
                 .ask(speak_output)
                 .response
         )
+
 
 """
 class ReportIntentHandler(AbstractRequestHandler):
@@ -336,6 +367,7 @@ sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(ReportIntentHandler())
 sb.add_request_handler(LocationIntentHandler())
 sb.add_request_handler(InjuriesIntentHandler())
+sb.add_request_handler(NameIntentHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(CancelOrStopIntentHandler())
 sb.add_request_handler(SessionEndedRequestHandler())
